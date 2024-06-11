@@ -98,16 +98,20 @@ def process_videos(video_files):
         results = executor.map(process_video, video_files)
         return list(results)
     
-def main(video_files):
+def main(video_files, output_file, verbose=False):
     # Process multiple videos in parallel
+    if verbose:
+        print(f"Processing {len(video_files)} video files")
     all_transcripts = process_videos(video_files)
     for idx, transcript in enumerate(all_transcripts):
         
-        if verbose: 
-            print(f"Transcript for video {idx+1}: {transcript}")
+        #if verbose: 
+        #    print(f"Transcript for video {idx+1}: {transcript}")
 
         video_file = video_files[idx]
-        transcript_file = os.path.splitext(video_file)[0] + '.txt'
+        video_id = os.path.splitext(video_file)[0]
+        transcript_file = os.path.join(output_file, video_id + '.txt')
+        #transcript_file = os.path.splitext(video_file)[0] + '.txt'
         
         with open(transcript_file, 'w') as f:
             f.write(transcript)
@@ -126,5 +130,5 @@ if __name__ == '__main__':
     with open(video_file_path, 'r') as f:
         video_files = f.readlines()
         video_files = [video_file.strip() for video_file in video_files]
-
-    main(video_files)
+    print(video_files)
+    main(video_files,output_path, verbose)
