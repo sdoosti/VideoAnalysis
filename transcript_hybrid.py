@@ -3,6 +3,8 @@ This file extracts the audio from a video file and saves it as a .wav file.
 It also extracts the transcript from the video and saves it as a .txt file.
 
 Hybrid parallelization is used to transcribe the audio chunks in parallel (also at video level)
+
+
 """
 
 import os
