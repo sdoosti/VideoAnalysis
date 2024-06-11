@@ -15,23 +15,25 @@ import io
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 import numpy as np
 import logging
+import argparse
 
 
 PATH = os.path.dirname(__file__)
 
-# add arg parser for video files path and options and output
-
+def get_args():
+    """
+    Get the command line arguments
+    """
+    parser = argparse.ArgumentParser(description='Video files and options')
+    parser.add_argument('-f', '--file', help='The path to a txt file including video files', required=True)
+    parser.add_argument('-o', '--output', help='The output path to store the transcripts', required=True)
+    parser.add_argument('-v', '--verbose', help='Print the log messages', action='store_true')
+    return parser.parse_args()
 
 # configure logging
 logging.basicConfig(filename=os.path.join(PATH, f'transcribe.log'), level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s')
 
-videos = ['335673943535848.mp4',
-          '354955018231049.mp4',
-          '356330281398896.mp4',
-          "129791957687477.mp4"]
-
-video_files = [os.path.join(PATH, video) for video in videos]
 
 # Step 1: Extract audio from video
 # Done in the process_video function
@@ -54,7 +56,7 @@ def transcribe_chunk(chunk, index, video_id):
         try:
             transcript = recognizer.recognize_google(audio_data)
             return (index, transcript)
-        except sr.UnknownValueError:
+        except sr.UnknownValueError as e:
             logging.error(f"Chunk {index} could not be understood: {video_id} - {e}")
             return (index, "")
         except sr.RequestError as e:
@@ -100,7 +102,9 @@ def main(video_files):
     # Process multiple videos in parallel
     all_transcripts = process_videos(video_files)
     for idx, transcript in enumerate(all_transcripts):
-        #print(f"Transcript for video {idx+1}: {transcript}")
+        
+        if verbose: 
+            print(f"Transcript for video {idx+1}: {transcript}")
 
         video_file = video_files[idx]
         transcript_file = os.path.splitext(video_file)[0] + '.txt'
@@ -109,7 +113,18 @@ def main(video_files):
             f.write(transcript)
         logging.info(f"Transcript saved to: {transcript_file}: {video_file}")
         
-        #print(f"Transcript saved to: {transcript_file}")
+        if verbose:
+            print(f"Transcript saved to: {transcript_file}")
 
 if __name__ == '__main__':
+    # Step 0: Get the command line arguments
+    args = get_args()
+    video_file_path = args.file
+    output_path = args.output
+    verbose = args.verbose
+    # open video files
+    with open(video_file_path, 'r') as f:
+        video_files = f.readlines()
+        video_files = [video_file.strip() for video_file in video_files]
+
     main(video_files)
