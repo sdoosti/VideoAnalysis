@@ -4,6 +4,7 @@ It also extracts the transcript from the video and saves it as a .txt file.
 
 Hybrid parallelization is used to transcribe the audio chunks in parallel (also at video level)
 
+Creator: Shahryar Doosti (doosti@chapman.edu)
 """
 
 import os
@@ -15,7 +16,6 @@ from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 import numpy as np
 
 PATH = os.path.dirname(__file__)
-
 
 videos = ['335673943535848.mp4',
           '354955018231049.mp4',
