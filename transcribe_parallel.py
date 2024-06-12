@@ -16,6 +16,7 @@ from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 import numpy as np
 import logging
 import argparse
+from tqdm import tqdm
 
 
 PATH = os.path.dirname(__file__)
@@ -72,7 +73,7 @@ def transcribe_audio_chunks(chunks, video_id):
         return full_transcript
 
 # Step 4: Process video file
-def process_video(video_file):
+def process_video(video_file, output_file, verbose=False):
     # Extract audio from video
     video = VideoFileClip(video_file)
     video_id = os.path.splitext(video_file)[0]
@@ -90,35 +91,30 @@ def process_video(video_file):
     logging.info(f"Transcript Completed: {video_id}")
     #print(f"Transcript for {video_file}: ", full_transcript)
 
+    transcript_file = os.path.join(output_file, video_id + '.txt')
+    #transcript_file = os.path.splitext(video_file)[0] + '.txt'
+    
+    with open(transcript_file, 'w') as f:
+        f.write(full_transcript)
+    logging.info(f"Transcript saved to: {transcript_file}: {video_file}")
+    
+    if verbose:
+        print(f"Transcript saved to: {transcript_file}")
+        
     return full_transcript
 
 # Step 5: Process all video files
-def process_videos(video_files):
+def process_videos(video_files, output_file, verbose=False):
     with ProcessPoolExecutor() as executor:
-        results = executor.map(process_video, video_files)
-        return list(results)
+        for video_file in tqdm(video_files, desc="Processing video files") if verbose else:
+            executor.submit(process_video, video_file, output_file, verbose)
     
 def main(video_files, output_file, verbose=False):
     # Process multiple videos in parallel
     if verbose:
         print(f"Processing {len(video_files)} video files")
-    all_transcripts = process_videos(video_files)
-    for idx, transcript in enumerate(all_transcripts):
-        
-        #if verbose: 
-        #    print(f"Transcript for video {idx+1}: {transcript}")
+    process_videos(video_files, output_file, verbose)
 
-        video_file = video_files[idx]
-        video_id = os.path.splitext(video_file)[0]
-        transcript_file = os.path.join(output_file, video_id + '.txt')
-        #transcript_file = os.path.splitext(video_file)[0] + '.txt'
-        
-        with open(transcript_file, 'w') as f:
-            f.write(transcript)
-        logging.info(f"Transcript saved to: {transcript_file}: {video_file}")
-        
-        if verbose:
-            print(f"Transcript saved to: {transcript_file}")
 
 if __name__ == '__main__':
     # Step 0: Get the command line arguments
@@ -130,5 +126,5 @@ if __name__ == '__main__':
     with open(video_file_path, 'r') as f:
         video_files = f.readlines()
         video_files = [video_file.strip() for video_file in video_files]
-    print(video_files)
+    print(f"Number of video files: {len(video_files)}")
     main(video_files,output_path, verbose)
