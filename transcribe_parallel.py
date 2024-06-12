@@ -131,6 +131,8 @@ if __name__ == '__main__':
     # open video files
     with open(video_file_path, 'r') as f:
         video_files = f.readlines()
-        video_files = [video_file.strip() for video_file in video_files]
+        # exclude the files that the transcript already exists
+        video_files = [video_file.strip() for video_file in video_files if not os.path.exists(os.path.join(output_path, os.path.splitext(video_file.strip())[0].split('/')[-1] + '.txt'))]
+        #video_files = [video_file.strip() for video_file in video_files]
     print(f"Number of video files: {len(video_files)}")
     main(video_files,output_path, verbose)
