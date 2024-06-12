@@ -65,12 +65,18 @@ def transcribe_chunk(chunk, index, video_id):
             return (index, "")
 
 def transcribe_audio_chunks(chunks, video_id):
-    with ThreadPoolExecutor() as executor:
-        futures = [executor.submit(transcribe_chunk, chunk, i, video_id) for i, chunk in enumerate(chunks)]
-        results = [future.result() for future in futures]
-        results.sort(key=lambda x: x[0])  # Sort by index to maintain order
-        full_transcript = " ".join([result[1] for result in results])
-        return full_transcript
+    # with ThreadPoolExecutor() as executor:
+    #     futures = [executor.submit(transcribe_chunk, chunk, i, video_id) for i, chunk in enumerate(chunks)]
+    #     futures = [transcribe_chunk(chunk, i, video_id) for i, chunk in enumerate(chunks)]
+    #     results = [future.result() for future in futures]
+    #     results.sort(key=lambda x: x[0])  # Sort by index to maintain order
+    #     full_transcript = " ".join([result[1] for result in results])
+    #     return full_transcript\
+    
+    # no multi-threading
+    results = [transcribe_chunk(chunk, i, video_id) for i, chunk in enumerate(chunks)]
+    full_transcript = " ".join([result[1] for result in results])
+    return full_transcript
 
 # Step 4: Process video file
 def process_video(video_file, output_file, verbose=False):
@@ -106,7 +112,7 @@ def process_video(video_file, output_file, verbose=False):
 # Step 5: Process all video files
 def process_videos(video_files, output_file, verbose=False):
     with ProcessPoolExecutor() as executor:
-        for video_file in tqdm(video_files, desc="Processing video files") if verbose else:
+        for video_file in tqdm(video_files, desc="Processing video files") if verbose else video_files:
             executor.submit(process_video, video_file, output_file, verbose)
     
 def main(video_files, output_file, verbose=False):
