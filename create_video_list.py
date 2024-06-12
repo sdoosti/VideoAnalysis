@@ -22,3 +22,6 @@ def main():
     with open(args.output, 'w') as f:
         for video_file in video_files:
             f.write(video_file + '\n')
+
+if __name__ == '__main__':
+    main()
