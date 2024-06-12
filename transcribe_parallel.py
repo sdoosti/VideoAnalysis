@@ -82,7 +82,7 @@ def transcribe_audio_chunks(chunks, video_id):
 def process_video(video_file, output_file, verbose=False):
     # Extract audio from video
     video = VideoFileClip(video_file)
-    video_id = os.path.splitext(video_file)[0]
+    video_id = os.path.splitext(video_file)[0].split('/')[-1]
     audio = video.audio
 
     audio_segment = AudioSegment.from_file(video_file, format="mp4")
