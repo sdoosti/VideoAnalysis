@@ -13,18 +13,33 @@ def read_transcript(file):
 creators = pd.read_csv("videos_creators.csv")
 sponsors = pd.read_csv("videos_sponsors.csv")
 
+# print the shape of the data
+print(f"Creators: {creators.shape}")
+print(f"Sponsors: {sponsors.shape}")
+
+# print the columns
+print("Columns")
+print(creators.columns)
+print(sponsors.columns)
+
 # modifying the columns
 ccols = ['video_id', 'creator_id', 'creator_name', 'video_title',
        'video_description', 'video_url', 'video_topics']
 scols = ['video_id', 'creator_id', 'creator_name', 'title',
-       'description', 'url', 'topics']
+       'description', 'video_url', 'topics']
 creators = creators[ccols].copy()
+sponsors = sponsors[scols].copy()
 creators.columns = scols
 creators['type'] = "creator"
 sponsors['type'] = "sponsor"
 
-# Combine the data
-combined = pd.concat([creators, sponsors], ignore_index=True)
+# print the columns
+print("Updated Columns")
+print(creators.columns)
+print(sponsors.columns)
+
+# stack the data vertically
+combined = pd.concat([creators, sponsors], axis=0, ignore_index=True)
 
 print(combined.head())
 print(combined.shape)
@@ -63,6 +78,10 @@ for i, row in tqdm(combined.iterrows(), desc='Creators and Sponsors'):
 
 combined["transcript"] = transcripts
 
-# Save the data
-combined.to_csv("videos_transcripts.csv", index=False)
+# print the missing transcripts
+print("Missing Transcripts")
+print(combined[(combined["transcript"].isnull()) | (combined["transcript"] == "")].shape)
 
+# Save the data
+print("Saving the data")
+combined.to_csv("videos_transcripts.csv", index=False)
