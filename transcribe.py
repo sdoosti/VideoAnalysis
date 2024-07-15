@@ -84,7 +84,11 @@ def process_video(video_file, output_file, verbose=False):
     video_id = os.path.splitext(video_file)[0].split('/')[-1]
     audio = video.audio
 
-    audio_segment = AudioSegment.from_file(video_file, format="mp4")
+    try:
+        audio_segment = AudioSegment.from_file(video_file, format="mp4")
+    except IndexError as e:
+        logging.error(f"Could not extract audio from video: {video_id} - {e}")
+        return ""
 
     video.close()  # Close the video to free up resources
 
