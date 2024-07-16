@@ -83,6 +83,7 @@ def process_video(video_file, output_file, verbose=False):
     video = VideoFileClip(video_file)
     video_id = os.path.splitext(video_file)[0].split('/')[-1]
     audio = video.audio
+    video.close()  # Close the video to free up resources
 
     try:
         audio_segment = AudioSegment.from_file(video_file, format="mp4")
@@ -90,7 +91,6 @@ def process_video(video_file, output_file, verbose=False):
         logging.error(f"Could not extract audio from video: {video_id} - {e}")
         return ""
 
-    video.close()  # Close the video to free up resources
 
     # Split the audio into chunks of 1 minute (60000 milliseconds)
     audio_chunks = split_audio(audio_segment, 60000) # I passed the audio_segment instead of the audio_file
@@ -132,9 +132,13 @@ if __name__ == '__main__':
     # open video files
     with open(video_file_path, 'r') as f:
         video_files = f.readlines()
+        # replace the backslashes with forward slashes
         video_files = [video_file.replace("\\","/") for video_file in video_files]
+        # only videos in videos or videos4 folder
+        video_files = [video_file for video_file in video_files if  os.path.splitext(video_file.strip())[0].split('/')[-2] == 'videos4'] # os.path.splitext(video_file.strip())[0].split('/')[-2] == 'videos' or
         # exclude the files that the transcript already exists
         video_files = [video_file.strip() for video_file in video_files if not os.path.exists(os.path.join(output_path, os.path.splitext(video_file.strip())[0].split('/')[-1] + '.txt'))]
         #video_files = [video_file.strip() for video_file in video_files]
     print(f"Number of video files: {len(video_files)}")
-    main(video_files[3:500],output_path, verbose)
+    # process the videos
+    main(video_files,output_path, verbose)
