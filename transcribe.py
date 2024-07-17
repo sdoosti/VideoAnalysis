@@ -80,10 +80,10 @@ def transcribe_audio_chunks(chunks, video_id):
 # Step 4: Process video file
 def process_video(video_file, output_file, verbose=False):
     # Extract audio from video
-    video = VideoFileClip(video_file)
+    # video = VideoFileClip(video_file)
     video_id = os.path.splitext(video_file)[0].split('/')[-1]
-    audio = video.audio
-    video.close()  # Close the video to free up resources
+    # audio = video.audio
+    # video.close()  # Close the video to free up resources
 
     try:
         audio_segment = AudioSegment.from_file(video_file, format="mp4")
@@ -135,7 +135,7 @@ if __name__ == '__main__':
         # replace the backslashes with forward slashes
         video_files = [video_file.replace("\\","/") for video_file in video_files]
         # only videos in videos or videos4 folder
-        video_files = [video_file for video_file in video_files if  os.path.splitext(video_file.strip())[0].split('/')[-2] == 'videos4'] # os.path.splitext(video_file.strip())[0].split('/')[-2] == 'videos' or
+        video_files = [video_file for video_file in video_files if  os.path.splitext(video_file.strip())[0].split('/')[-2] == 'videos5'] # os.path.splitext(video_file.strip())[0].split('/')[-2] == 'videos' or
         # exclude the files that the transcript already exists
         video_files = [video_file.strip() for video_file in video_files if not os.path.exists(os.path.join(output_path, os.path.splitext(video_file.strip())[0].split('/')[-1] + '.txt'))]
         #video_files = [video_file.strip() for video_file in video_files]
