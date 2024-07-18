@@ -1,7 +1,9 @@
 import os
 import pandas as pd
+import numpy as np
 from tqdm import tqdm
 
+PATH = "E:/Facebook/transcripts/sponsored/"
 
 # load the transcripts
 def read_transcript(file):
@@ -9,79 +11,44 @@ def read_transcript(file):
         transcript = f.read()
         return transcript
      
-# Set the path to the directory containing the data
-creators = pd.read_csv("videos_creators.csv")
-sponsors = pd.read_csv("videos_sponsors.csv")
-
-# print the shape of the data
-print(f"Creators: {creators.shape}")
-print(f"Sponsors: {sponsors.shape}")
-
-# print the columns
-print("Columns")
-print(creators.columns)
-print(sponsors.columns)
-
-# modifying the columns
-ccols = ['video_id', 'creator_id', 'creator_name', 'video_title',
-       'video_description', 'video_url', 'video_topics']
-scols = ['video_id', 'creator_id', 'creator_name', 'title',
-       'description', 'video_url', 'topics']
-creators = creators[ccols].copy()
-sponsors = sponsors[scols].copy()
-creators.columns = scols
-creators['type'] = "creator"
-sponsors['type'] = "sponsor"
-
-# print the columns
-print("Updated Columns")
-print(creators.columns)
-print(sponsors.columns)
-
-# stack the data vertically
-combined = pd.concat([creators, sponsors], axis=0, ignore_index=True)
-
-print(combined.head())
-print(combined.shape)
-
-# create a dictionary of video_id and transcript file
+# create a dictionary of video_id and transcript
 transcript_dict = {}
 print("Creating transcript dictionary")
-for root, dirs, files in os.walk("transcripts"):
+for root, dirs, files in os.walk(PATH):
     for file in files:
         video_id = file.split(".")[0]
-        transcript_dict[video_id] = os.path.join(root, file)
-for root, dirs, files in os.walk("transcripts2"):
-    for file in files:
-        video_id = file.split(".")[0]
-        transcript_dict[video_id] = os.path.join(root, file)
+        transcript_dict[video_id] = read_transcript(os.path.join(root, file))
 
-# transcript dictionary
-transcript_text_dict = {}
-for video_id, video_file in transcript_dict.items():
-    #print(video_id, video_file)
-    if os.path.exists(video_file):
-        #print(f"Transcript file found for video {video_id}")
-        transcript_text = read_transcript(video_file)
-        transcript_text_dict[video_id] = transcript_text
-    else:
-        #print(f"Transcript file not found for video {video_id}")
-        pass
+# data frame
+df = pd.DataFrame(transcript_dict.items(), columns=["video_id", "transcript"])
+df['video_id'] = df['video_id'].astype(np.int64)
 
-# Aggregate the transcripts
-print('Aggregating transcripts')
-transcripts = []
-for i, row in tqdm(combined.iterrows(), desc='Creators and Sponsors'):
-    video_id = str(row["video_id"])
-    transcript = transcript_text_dict.get(video_id,None)    
-    transcripts.append(transcript)
+# transcript length
+df['length'] = df['transcript'].apply(lambda x: len(x.split()))
+df.length.describe()
 
-combined["transcript"] = transcripts
+df.loc[df.length<3,'transcript'] = None
 
-# print the missing transcripts
-print("Missing Transcripts")
-print(combined[(combined["transcript"].isnull()) | (combined["transcript"] == "")].shape)
 
-# Save the data
-print("Saving the data")
-combined.to_csv("videos_transcripts.csv", index=False)
+# sponsored data
+data = pd.read_csv(r"C:\Users\doosti\OneDrive - Chapman University\Research\Research Projects\Facebook\Tubular\revision_2024\pooled_us_jul2024.csv")
+data['video_id'] = data['video_id'].astype(np.int64)    
+
+# check the number of matching video_id
+print("Number of matching video_id: ", data.merge(df, on='video_id', how='inner').shape)
+print('Number of matching new_id: ', data.merge(df, right_on='video_id', left_on = 'new_id', how='inner').shape)
+# adding one to video_id in df
+df['new_id'] = df['video_id'] + 1
+print("Number of matching video_id: ", data.merge(df, right_on='new_id', left_on = 'video_id', how='inner').shape)
+# subtracting one from video_id in df
+df['new_id'] = df['video_id'] - 1
+print("Number of matching video_id: ", data.merge(df, right_on='new_id', left_on = 'video_id', how='inner').shape)
+
+counter = 0
+for vid in df.video_id.values:
+    if vid not in data.video_id.values:
+        if vid+1 not in data.video_id.values:
+            if vid-1 not in data.video_id.values:
+                print(vid)
+                counter+=1
+#df.to_csv("sponsored_transcripts.csv", index=False)
