@@ -31,7 +31,7 @@ sponsor_df = data[data.sponsored==1][['sponsor_id','sponsor_name']].drop_duplica
 sponsor_meta = pd.read_csv(os.path.join(DATA_PATH,'videos_sponsors.csv'))
 
 # Merge the sponsor data
-sponsor_df['description'] = sponsor_df.merge(sponsor_meta[['creator_name','creator_description']].drop_duplicates(),left_on='sponsor_name',right_on='creator_name',how='inner')['creator_description']
+sponsor_df['description'] = sponsor_df.merge(sponsor_meta[['creator_name','creator_description']].drop_duplicates(),left_on='sponsor_name',right_on='creator_name',how='left')['creator_description'].values
 
 print(sponsor_df.head())
 print(sponsor_df.shape)
